@@ -60,6 +60,20 @@ static PyObject * PyRax_find(PyRaxObject *self, PyObject *args) {
     return (PyObject *)ret;
 }
 
+static PyObject * PyRax_remove(PyRaxObject *self, PyObject *args) {
+    char *key;
+    int ret;
+    PyObject *old;
+
+    if (!PyArg_ParseTuple(args, "s", &key))
+        return NULL;
+    
+    ret = raxRemove(self->rt, (unsigned char *)key, strlen(key), old);
+    Py_DECREF(old);
+
+    return PyLong_FromSize_t(ret);
+}
+
 static void Pyrax_dealloc(PyRaxObject *self) {
     PyObject_GC_UnTrack(self);
     raxFree(self->rt);

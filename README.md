@@ -1,6 +1,10 @@
-# antirez/rax API说明
+# pyrax
 
-## raxInsert
+[antirez/rax](https://github.com/antirez/rax)的Python扩展。**antirez/rax** is a radix tree implementation in ANSI C。
+
+## antirez/rax API说明
+
+### raxInsert
 
 函数声明：
 

@@ -27,23 +27,35 @@ static PyObject * PyRax_insert(PyRaxObject *self, PyObject *args, PyObject *kw) 
     char *key;
     char *data;
     int ret;
+    PyObject *py_bytes;
 
     if(!PyArg_ParseTupleAndKeywords(args, kw, "s|s", kwlist, &key, &data)) {
         ret = -1;
         return PyLong_FromSize_t(ret);
     }
-    ret = raxInsert(self->rt, (unsigned char *)key, strlen(key), data, NULL);
-    // return PyLong_FromSize_t(ret);
-    return PyUnicode_FromString(data);
+
+    py_bytes = PyBytes_FromString(data);
+    Py_INCREF(py_bytes);
+    ret = raxInsert(self->rt, (unsigned char *)key, strlen(key), (void *)py_bytes, NULL);
+    
+    return PyLong_FromSize_t(ret);
 }
 
 static PyObject * PyRax_find(PyRaxObject *self, PyObject *args) {
     char *key;
     void *ret;
+    
     if (!PyArg_ParseTuple(args, "s", &key))
         return NULL;
+    
     ret = raxFind(self->rt, (unsigned char *)key, strlen(key));
-    return PyUnicode_FromString((char *)ret);
+    
+    if (ret == raxNotFound) {
+        return Py_None;
+    }
+    
+    Py_INCREF((PyObject *)ret);
+    return (PyObject *)ret;
 }
 
 static void Pyrax_dealloc(PyRaxObject *self) {

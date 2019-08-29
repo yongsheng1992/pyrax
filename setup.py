@@ -7,7 +7,8 @@ setup(
             name='pyrax',
             sources=['src/pyrax.c', 'src/rax.c'],
             include_dirs=['./src'],
-            library_dirs = ['/usr/local/lib']
+            library_dirs = ['/usr/local/lib'],
+            # define_macros=[('RAX_DEBUG_MSG', None)]
         )
     ]
 )

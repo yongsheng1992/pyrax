@@ -21,13 +21,13 @@ static int PyRax_init(PyRaxObject *self, PyObject *args, PyObject *kwds) {
     return 0;
 }
 
-// rax.insert(key, data=None)
 static PyObject * PyRax_insert(PyRaxObject *self, PyObject *args, PyObject *kw) {
     char* kwlist[] = {"key", "data", NULL};
     char *key;
     char *data;
     int ret;
     PyObject *py_bytes;
+    PyObject *old;
 
     if(!PyArg_ParseTupleAndKeywords(args, kw, "s|s", kwlist, &key, &data)) {
         ret = -1;
@@ -35,8 +35,10 @@ static PyObject * PyRax_insert(PyRaxObject *self, PyObject *args, PyObject *kw) 
     }
 
     py_bytes = PyBytes_FromString(data);
+
     Py_INCREF(py_bytes);
-    ret = raxInsert(self->rt, (unsigned char *)key, strlen(key), (void *)py_bytes, NULL);
+    ret = raxInsert(self->rt, (unsigned char *)key, strlen(key), (void *)py_bytes, (void *)old);
+    Py_DECREF(old);
     
     return PyLong_FromSize_t(ret);
 }

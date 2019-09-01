@@ -36,3 +36,4 @@ static PyObject * PyRax_insert(PyRaxObject *self, PyObject *args, PyObject *kw) 
 ## TODO List
 
 * 使用valgrind检测内存泄漏
+* 调用`del rax`的时候发生错误

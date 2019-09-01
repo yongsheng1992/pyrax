@@ -2,6 +2,8 @@
 
 [antirez/rax](https://github.com/antirez/rax)的Python扩展。**antirez/rax** is a radix tree implementation in ANSI C。
 
+开发这个扩展主要是为了学习。
+
 ## antirez/rax API说明
 
 ### raxInsert
@@ -29,3 +31,8 @@ static PyObject * PyRax_insert(PyRaxObject *self, PyObject *args, PyObject *kw) 
 }
 ```
 当在`PyRax_insert`函数中调用`raxInsert`，函数返回的时候，**data**的值将会被销毁。对应的**raxNode**中的指针地址不变，但是数据已经改变。
+
+
+## TODO List
+
+* 使用valgrind检测内存泄漏

@@ -27,7 +27,7 @@ static PyObject * PyRax_insert(PyRaxObject *self, PyObject *args, PyObject *kw) 
     char *data;
     int ret;
     PyObject *py_bytes;
-    PyObject *old;
+    void *old = NULL;
 
     if(!PyArg_ParseTupleAndKeywords(args, kw, "s|s", kwlist, &key, &data)) {
         ret = -1;
@@ -37,9 +37,10 @@ static PyObject * PyRax_insert(PyRaxObject *self, PyObject *args, PyObject *kw) 
     py_bytes = PyBytes_FromString(data);
 
     Py_INCREF(py_bytes);
-    ret = raxInsert(self->rt, (unsigned char *)key, strlen(key), (void *)py_bytes, (void *)old);
-    Py_DECREF(old);
-    
+    ret = raxInsert(self->rt, (unsigned char *)key, strlen(key), (void *)py_bytes, &old);
+    if (ret == 0) {
+        Py_DECREF((PyObject *)old);
+    }
     return PyLong_FromSize_t(ret);
 }
 
@@ -63,26 +64,36 @@ static PyObject * PyRax_find(PyRaxObject *self, PyObject *args) {
 static PyObject * PyRax_remove(PyRaxObject *self, PyObject *args) {
     char *key;
     int ret;
-    PyObject *old;
+    void *old = NULL;
 
     if (!PyArg_ParseTuple(args, "s", &key))
         return NULL;
     
-    ret = raxRemove(self->rt, (unsigned char *)key, strlen(key), old);
-    Py_DECREF(old);
+    ret = raxRemove(self->rt, (unsigned char *)key, strlen(key), &old);
+    if (ret == 1) {
+        Py_DECREF((PyObject *)old);
+    }
 
     return PyLong_FromSize_t(ret);
 }
 
+static void PyRaxNodeFreeCallback(void *data) {
+    PyObject *old = (PyObject *)data;
+    Py_DECREF(old);
+}
+
 static void Pyrax_dealloc(PyRaxObject *self) {
     PyObject_GC_UnTrack(self);
-    raxFree(self->rt);
+    void (*func)(void *data);
+    func = PyRaxNodeFreeCallback;
+    raxFreeWithCallback(self->rt, func);
     Py_TYPE(self)->tp_free((PyObject *) self);
 }
 
 static PyMethodDef PyRax_methods[] = {
     {"insert", (PyCFunction) PyRax_insert, METH_VARARGS|METH_KEYWORDS},
     {"find", (PyCFunction) PyRax_find, METH_VARARGS},
+    {"remove", (PyCFunction) PyRax_remove, METH_VARARGS},
     {NULL}
 };
 

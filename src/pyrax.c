@@ -82,11 +82,10 @@ static void PyRaxNodeFreeCallback(void *data) {
     Py_DECREF(old);
 }
 
-static void Pyrax_dealloc(PyRaxObject *self) {
-    PyObject_GC_UnTrack(self);
+static void Pyrax_dealloc(void *self) {
     void (*func)(void *data);
     func = PyRaxNodeFreeCallback;
-    raxFreeWithCallback(self->rt, func);
+    raxFreeWithCallback(((PyRaxObject *)self)->rt, func);
     Py_TYPE(self)->tp_free((PyObject *) self);
 }
 
@@ -104,9 +103,9 @@ static PyTypeObject PyRaxType = {
     .tp_basicsize = sizeof(PyRaxObject),
     .tp_itemsize = 0,
     .tp_flags = Py_TPFLAGS_DEFAULT,
-    .tp_new = PyRax_new,
+    .tp_new = (newfunc) PyRax_new,
     .tp_init = (initproc) PyRax_init,
-    .tp_dealloc = Pyrax_dealloc,
+    .tp_dealloc = (destructor) Pyrax_dealloc,
     .tp_methods = PyRax_methods
 };
 

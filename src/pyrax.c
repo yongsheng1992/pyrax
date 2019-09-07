@@ -76,6 +76,11 @@ static PyObject * PyRax_remove(PyRaxObject *self, PyObject *args) {
     return PyLong_FromSize_t(ret);
 }
 
+static PyObject * PyRax_size(PyRaxObject *self) {
+    unsigned long ret = raxSize(self->rt);
+    return Py_BuildValue("k", ret);
+}
+
 static void PyRaxNodeFreeCallback(void *data) {
     free(data);
 }
@@ -91,6 +96,7 @@ static PyMethodDef PyRax_methods[] = {
     {"insert", (PyCFunction) PyRax_insert, METH_VARARGS|METH_KEYWORDS},
     {"find", (PyCFunction) PyRax_find, METH_VARARGS},
     {"remove", (PyCFunction) PyRax_remove, METH_VARARGS},
+    {"size", (PyCFunction) PyRax_size, METH_NOARGS},
     {NULL}
 };
 

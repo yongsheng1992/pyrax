@@ -22,21 +22,22 @@ static int PyRax_init(PyRaxObject *self, PyObject *args, PyObject *kwds) {
 }
 
 static PyObject * PyRax_insert(PyRaxObject *self, PyObject *args, PyObject *kw) {
-    char* kwlist[] = {"key", "data", NULL};
-    char *key;
-    char *data;
+    const char* kwlist[] = {"key", "data", NULL};
+    const char *key;
+    const char *data;
     int ret;
     void *old = NULL;
+    Py_ssize_t key_len, data_len;
 
-    if(!PyArg_ParseTupleAndKeywords(args, kw, "s|s", kwlist, &key, &data)) {
+    if(!PyArg_ParseTupleAndKeywords(args, kw, "y#|y#", kwlist, &key, &key_len, &data, &data_len)) {
         ret = -1;
         return PyLong_FromSize_t(ret);
     }
 
-    char *buf = (char *)malloc(strlen(data));
-    strcpy(buf, data);
+    char *buf = (char *)malloc(data_len);
+    memcpy(buf, data, data_len);
 
-    ret = raxInsert(self->rt, (unsigned char *)key, strlen(key), (void *)buf, &old);
+    ret = raxInsert(self->rt, (unsigned char *)key, key_len, (void *)buf, &old);
     if (ret == 0 && old && old != buf) {
         free(old);
     }
@@ -46,29 +47,31 @@ static PyObject * PyRax_insert(PyRaxObject *self, PyObject *args, PyObject *kw) 
 static PyObject * PyRax_find(PyRaxObject *self, PyObject *args) {
     char *key;
     void *data;
+    Py_ssize_t key_len;
     
-    if (!PyArg_ParseTuple(args, "s", &key))
+    if (!PyArg_ParseTuple(args, "y#", &key, &key_len));
         return NULL;
     
-    data = raxFind(self->rt, (unsigned char *)key, strlen(key));
+    data = raxFind(self->rt, (unsigned char *)key, key_len);
     
     if (data == raxNotFound) {
         Py_INCREF(Py_None);
         return Py_None;
     }
 
-    return Py_BuildValue("s", data);
+    return Py_BuildValue("y", (char *)data);
 }
 
 static PyObject * PyRax_remove(PyRaxObject *self, PyObject *args) {
     char *key;
     int ret;
+    Py_ssize_t key_len;
     void *old = NULL;
 
-    if (!PyArg_ParseTuple(args, "s", &key))
+    if (!PyArg_ParseTuple(args, "y#", &key, &key_len))
         return NULL;
     
-    ret = raxRemove(self->rt, (unsigned char *)key, strlen(key), &old);
+    ret = raxRemove(self->rt, (unsigned char *)key, key_len, &old);
     if (ret == 1) {
         free(old);
     }

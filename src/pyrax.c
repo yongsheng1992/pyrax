@@ -11,35 +11,32 @@ typedef struct {
 
 typedef struct {
     PyObject_HEAD
-    raxIterator *it;
+    raxIterator it;
 } PyRaxIterator;
 
 
 static PyObject * PyRaxIterator_new(PyTypeObject *type, PyObject *args, PyObject **kwds) {
-    printf("PyRaxIterator_new\n");
     PyRaxIterator *self;
     self = (PyRaxIterator *)type->tp_alloc(type, 0);
     return (PyObject *)self;
 }
 
 static int PyRaxIterator_init(PyRaxIterator *self, PyObject *args, PyObject *kwds) {
-    printf("PyRaxIterator_init\n");
     PyObject *rax;
     char *key, *op;
 
-    if (PyArg_ParseTuple(args, "Oss", &rax, &key, &op)) {
+    if (!PyArg_ParseTuple(args, "Oss", &rax, &key, &op)) {
         return 1;
     }
 
-    raxStart(self->it, ((PyRaxObject *)rax)->rt);
-    raxSeek(self->it, op, (unsigned char *)key, strlen(key));
+    raxStart(&self->it, ((PyRaxObject *)rax)->rt);
+    raxSeek(&self->it, op, (unsigned char *)key, strlen(key));
     
     return 0;
 }
 
 static void PyRaxIterator_dealloc(void *self) {
-    printf("PyRaxIterator_dealloc\n");
-    raxStop(((PyRaxIterator *)self)->it);
+    raxStop(&((PyRaxIterator *)self)->it);
     Py_TYPE(self)->tp_free((PyObject *) self);
 }
 
@@ -49,8 +46,8 @@ static PyObject * PyRaxIterator_iter(PyRaxIterator *self) {
 }
 
 static PyObject * PyRaxIterator_next(PyRaxIterator *self) {
-    if(raxNext(self->it)) {
-        return Py_BuildValue("y", self->it->key);
+    if(raxNext(&self->it)) {
+        return Py_BuildValue("s", self->it.key);
     }
     PyErr_SetNone(PyExc_StopIteration);
     return NULL;
